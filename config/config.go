@@ -135,7 +135,9 @@ func LoadConfig(filename string) (*Config, error) {
 	}
 
 	// https://github.com/99designs/gqlgen/blob/3a31a752df764738b1f6e99408df3b169d514784/codegen/config/config.go#L120
-	for _, f := range cfg.SchemaFilename {
+	preGlobbing := cfg.SchemaFilename
+	cfg.SchemaFilename = StringList{}
+	for _, f := range preGlobbing {
 		var matches []string
 
 		// for ** we want to override default globbing patterns and walk all
@@ -167,16 +169,13 @@ func LoadConfig(filename string) (*Config, error) {
 			}
 		}
 
-		files := StringList{}
 		for _, m := range matches {
-			if !files.Has(m) {
-				files = append(files, m)
+			if cfg.SchemaFilename.Has(m) {
+				continue
 			}
+			cfg.SchemaFilename = append(cfg.SchemaFilename, m)
 		}
-
-		cfg.SchemaFilename = files
 	}
-
 	models := make(config.TypeMap)
 	if cfg.Models != nil {
 		models = cfg.Models
