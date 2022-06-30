@@ -78,8 +78,22 @@ func NewOperation(operation *ast.OperationDefinition, queryDocument *ast.QueryDo
 }
 
 func ValidateOperationList(os ast.OperationList) error {
+	if err := IsUnnamedOperationExists(os); err != nil {
+		return fmt.Errorf("unnamed operation exists: %w", err)
+	}
+
 	if err := IsUniqueName(os); err != nil {
 		return fmt.Errorf("is not unique operation name: %w", err)
+	}
+
+	return nil
+}
+
+func IsUnnamedOperationExists(os ast.OperationList) error {
+	for _, operation := range os {
+		if len(operation.Name) == 0 {
+			return fmt.Errorf("unnamed operation: %s", operation.Position.Src.Name)
+		}
 	}
 
 	return nil
@@ -189,6 +203,10 @@ type Query struct {
 }
 
 func (s *Source) Query() (*Query, error) {
+	if s.schema.Query == nil {
+		return nil, nil
+	}
+
 	fields, err := s.sourceGenerator.NewResponseFieldsByDefinition(s.schema.Query)
 	if err != nil {
 		return nil, fmt.Errorf("generate failed for query struct type : %w", err)
@@ -211,6 +229,10 @@ type Mutation struct {
 }
 
 func (s *Source) Mutation() (*Mutation, error) {
+	if s.schema.Mutation == nil {
+		return nil, nil
+	}
+
 	fields, err := s.sourceGenerator.NewResponseFieldsByDefinition(s.schema.Mutation)
 	if err != nil {
 		return nil, fmt.Errorf("generate failed for mutation struct type : %w", err)
