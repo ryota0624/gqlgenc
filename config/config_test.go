@@ -60,6 +60,20 @@ func TestLoadConfig(t *testing.T) {
 		}
 	})
 
+	t.Run("muliti schema", func(t *testing.T) {
+		t.Parallel()
+		loadConfig, err := LoadConfig("testdata/cfg/multi_schema.yml")
+		require.NoError(t, err)
+
+		if runtime.GOOS == "windows" {
+			require.Equal(t, loadConfig.SchemaFilename[0], `testdata\cfg\glob\bar\bar with spaces.graphql`)
+			require.Equal(t, loadConfig.SchemaFilename[1], `testdata\cfg\glob\foo\foo.graphql`)
+		} else {
+			require.Equal(t, loadConfig.SchemaFilename[0], "testdata/cfg/glob/bar/bar with spaces.graphql")
+			require.Equal(t, loadConfig.SchemaFilename[1], "testdata/cfg/glob/foo/foo.graphql")
+		}
+	})
+
 	t.Run("unwalkable path", func(t *testing.T) {
 		t.Parallel()
 		_, err := LoadConfig("testdata/cfg/unwalkable.yml")
